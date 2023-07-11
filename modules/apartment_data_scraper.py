@@ -1,9 +1,9 @@
-import requests
-from bs4 import BeautifulSoup
-import csv
-import time
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
+from bs4 import BeautifulSoup
+import requests
+import csv
+import time
 
 def requests_retry_session(
     retries=3,
