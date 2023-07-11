@@ -17,17 +17,26 @@ def run():
     # Use a select box for the region feature
     region = st.sidebar.selectbox('Region', ['region_Prishtine', 'region_Peje', 'region_Ferizaj', 'region_Fushe Kosove'])
 
-    # Create a dictionary to encode the selected region
-    region_encoded = {r: int(region == r) for r in ['region_Prishtine', 'region_Peje', 'region_Ferizaj', 'region_Fushe Kosove']}
+    print(region)
 
     # Combine the features into a single dictionary
-    user_input = {'number_of_rooms': number_of_rooms, 'quadrat': quadrat, **region_encoded}
+    user_input = {'number_of_rooms': number_of_rooms, 'quadrat': quadrat, 'region': region}
+
+    if region is "region_Prishtine":
+        region = 1
+    elif region is "region_Peje":
+        region = 2
+    elif region is "region_Ferizaj":
+        region = 3
+    elif region is "region_Fushe Kosove":
+        region = 4
+    
 
     # Make predictions
     st.subheader('Prediction')
 
     # Extract the values in the correct order
-    input_data = [user_input[feature] for feature in ['number_of_rooms', 'quadrat', 'region_Prishtine']]
+    input_data = [user_input[feature] for feature in ['number_of_rooms', 'quadrat', 'region']]
 
     prediction = model.predict([input_data])
     st.write(f'Predicted price is {prediction[0]}')
