@@ -1,12 +1,45 @@
 import pandas as pd
+import numpy as np
 
-# Set pandas display options to show all rows and columns
-pd.set_option('display.max_rows', None)
-pd.set_option('display.max_columns', None)
+df = pd.read_csv("raw_apartment_data.csv")
+
+df['quadrat'] = df['quadrat'].str.replace('m 2', '').astype(float)
+df['price'] = df['price'].str.replace('�', '')
+
+def convert_price(price):
+    # Remove leading/trailing whitespace and commas
+    price = price.strip().replace(',', '')
+    # Convert to float
+    return float(price)
+
+df["price"] = df["price"].apply(convert_price)
+
+# Assuming your data is stored in a DataFrame called 'df'
+threshold = 5  # Adjust this value as needed
+
+# Select only numeric columns
+numeric_cols = df.select_dtypes(include=np.number)
+
+# Calculate z-scores for each numeric column
+z_scores = np.abs((numeric_cols - numeric_cols.mean()) / numeric_cols.std())
+
+# Remove data points with z-score above the threshold for each numeric column
+df_cleaned_numeric = df[(z_scores < threshold).all(axis=1)]
+
+# Merge cleaned numeric columns with non-numeric columns
+# df_cleaned = pd.concat([df_cleaned_numeric, df.select_dtypes(exclude=np.number)], axis=1)
+
+df_cleaned = df_cleaned_numeric
+
+# Assuming your dataset is stored in a DataFrame called 'df'
+df_cleaned = df_cleaned[(df_cleaned['number_of_rooms'] >= 0) & (df_cleaned['quadrat'] >= 20) & (df_cleaned['price'] > 100)]
+
+# Optionally, you can reset the index if needed
+df_cleaned = df_cleaned.reset_index(drop=True)
 
 # Define the neighborhoods dictionary
 neighborhoods = {
-    "Qendra": ["qendra", "kampusi universitar", "universitar", "kampusi", "Qender", "Xhamia e Llapit", "Qendër"],
+    "Qendra": ["qendra", "kampusi universitar", "universitar", "kampusi", "Qender", "Xhamia e Llapit", "Qendër", "Nena Tereze", "Tereze", "Sami Frasheri", "Frasheri", "Mihal", "Grameno"],
     "Lakrishta": ["lakrishta", "lakrishte", "lakrisht", "lagjja pejton", "pejton", "rilindjes", "rilindjes"],
     "Dardania": ["dardania", "lagja dardania", "lagja kalabria", "kalabria", "zona ekonomike", "kompleksi i fsk", "dardani"],
     "Ulpiana": ["ulpiana", "ulpiane", "ulpian"],
@@ -43,13 +76,7 @@ neighborhoods = {
     "Vellushe":["Vellushe"],
     "Germi": ["Germi"],
     "Veternik": ["Veternik"],
-    "Sami Frasheri": ["Sami Frasheri", "Frasheri"],
-    "Mihal Grameno": ["Mihal", "Grameno"],
-    "Nena Tereze": ["Nena Tereze", "Tereze"]
 }
-
-# Create a DataFrame with the rent headlines
-df = pd.read_csv("property_data.csv")
 
 # Function to map the neighborhood for each rent headline
 def get_neighborhood(rent_headline):
@@ -59,9 +86,6 @@ def get_neighborhood(rent_headline):
     return None
 
 # Apply the function to create a new column 'Neighborhood'
-df['Neighborhood'] = df['title'].apply(get_neighborhood)
+df_cleaned['Neighborhood'] = df_cleaned['title'].apply(get_neighborhood)
 
-print(df["Neighborhood"].value_counts())
-
-df.to_csv("add_neighborhood.csv")
-
+df_cleaned.to_csv("preprocessed_apartment_data.csv")
