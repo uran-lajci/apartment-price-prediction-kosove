@@ -1,46 +1,71 @@
 import streamlit as st
-from joblib import load
+import joblib
+import warnings
 
-# Load the model
-model = load('linear_regression_model.joblib')
+warnings.filterwarnings("ignore")
 
-# Define the app
-def run():
+# Select the ml model
+season = st.selectbox("Select the Machine Learning Model", ['Linear Regression', 'K-nn', 'Decision Tree', 'Naive Bayes', 'Random Forest'])
 
-    # Create inputs for all your features
-    st.sidebar.header('User Input Features')
+# Load the trained machine learning model
+model = None
 
-    # Use sliders for number_of_rooms and quadrat, adjusting the min and max values to match your data
-    number_of_rooms = st.sidebar.slider(label='Number of Rooms', min_value=1, max_value=5, value=2, step=1)
-    quadrat = st.sidebar.slider(label='Quadrat', min_value=20, max_value=240, value=70, step=1)
+if season == 'Linear Regression':
+    model = joblib.load('regression models/linear_regression_model.joblib')
+elif season == 'K-nn':
+    model = joblib.load('regression models/knn_model.joblib')
+elif season == 'Decision Tree':
+    model = joblib.load('regression models/decision_tree_model.joblib')
+elif season == 'Naive Bayes':
+    model = joblib.load('regression models/naive_bayes_model.joblib')
+elif season == 'Random Forest':
+    model = joblib.load('regression models/random_forest_model.joblib')
 
-    # Use a select box for the region feature
-    region = st.sidebar.selectbox('Region', ['region_Prishtine', 'region_Peje', 'region_Ferizaj', 'region_Fushe Kosove'])
+# Number of rooms
+number_of_rooms = st.number_input("Number of Rooms", min_value=0, max_value=5)
 
-    print(region)
+# Define room to m^2 mapping
+room_to_m2_mapping = {
+    0: {"min": 18, "max": 37},  # studio
+    1: {"min": 37, "max": 56},  # 1 bedroom
+    2: {"min": 56, "max": 93},  # 2 bedrooms
+    3: {"min": 93, "max": 140},  # 3 bedrooms
+    4: {"min": 130, "max": 170},  # 4 bedrooms
+    5: {"min": 170, "max": 500}  # 5 bedrooms
+}
 
-    # Combine the features into a single dictionary
-    user_input = {'number_of_rooms': number_of_rooms, 'quadrat': quadrat, 'region': region}
+# Get min and max for the selected number of rooms
+min_m2 = room_to_m2_mapping[number_of_rooms]["min"]
+max_m2 = room_to_m2_mapping[number_of_rooms]["max"]
 
-    if region is "region_Prishtine":
-        region = 1
-    elif region is "region_Peje":
-        region = 2
-    elif region is "region_Ferizaj":
-        region = 3
-    elif region is "region_Fushe Kosove":
-        region = 4
-    
+# Quadrat (m^2)
+quadrat = st.number_input("Quadrat (m^2)", min_value=min_m2, max_value=max_m2)
 
-    # Make predictions
-    st.subheader('Prediction')
+# Select region
+region = st.selectbox("Select Region", ['region_Prishtine', 'region_other region in Kosove'])
 
-    # Extract the values in the correct order
-    input_data = [user_input[feature] for feature in ['number_of_rooms', 'quadrat', 'region']]
+# Select season
+season = st.selectbox("Select Season", ['seasons_Autumn', 'seasons_Spring', 'seasons_Summer', 'seasons_Winter'])
 
-    prediction = model.predict([input_data])
-    st.write(f'Predicted price is {prediction[0]}')
+# Make prediction when all necessary fields are filled
+if st.button("Predict"):
+    # Prepare the input data for prediction
+    input_data = {
+        'number_of_rooms': number_of_rooms,
+        'quadrat': quadrat,
+        'region_Prishtine': 1 if region == 'region_Prishtine' else 0,
+        'region_other region in Kosove': 1 if region == 'region_other region in Kosove' else 0,
+        'seasons_Autumn': 1 if season == 'seasons_Autumn' else 0,
+        'seasons_Spring': 1 if season == 'seasons_Spring' else 0,
+        'seasons_Summer': 1 if season == 'seasons_Summer' else 0,
+        'seasons_Winter': 1 if season == 'seasons_Winter' else 0
+    }
 
-# Run the app
-if __name__ == '__main__':
-    run()
+    # Convert input data to a 2D array for prediction
+    input_array = [list(input_data.values())]
+
+    # Perform prediction using the loaded model
+    prediction = model.predict(input_array)[0]
+
+    # Display the predicted price
+    st.write("Predicted Price: ", int(prediction), " euro")
