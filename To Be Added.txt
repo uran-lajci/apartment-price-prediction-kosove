@@ -1,0 +1,6 @@
+- Related Work
+- Prediction with Neural Networks
+- Description of the Data Exploration
+- Modifing the data and models to get better results
+- Conclusions and Future Work
+- Correct all the grammer and writing style
