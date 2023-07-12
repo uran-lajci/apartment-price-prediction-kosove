@@ -4,22 +4,23 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
+# Select between Classification or Regression
+prediction_type = st.selectbox("Select Prediction Type", ['Regression', 'Classification'])
+
+# Load the appropriate model based on the prediction type
+if prediction_type == 'Regression':
+    models = ['Linear Regression', 'K-nn', 'Decision Tree', 'Random Forest']
+    model_file_names = ['linear_regression_model', 'knn_model', 'decision_tree_model', 'random_forest_model']
+else:
+    models = ['Logistic Regression', 'K-nn', 'Decision Tree', 'Naive Bayes', 'Random Forest']
+    model_file_names = ['logistic_regression_model', 'knn_model', 'decision_tree_model', 'naive_bayes_model', 'random_forest_model']
+
 # Select the ml model
-season = st.selectbox("Select the Machine Learning Model", ['Linear Regression', 'K-nn', 'Decision Tree', 'Naive Bayes', 'Random Forest'])
+selected_model = st.selectbox("Select the Machine Learning Model", models)
 
 # Load the trained machine learning model
-model = None
-
-if season == 'Linear Regression':
-    model = joblib.load('regression models/linear_regression_model.joblib')
-elif season == 'K-nn':
-    model = joblib.load('regression models/knn_model.joblib')
-elif season == 'Decision Tree':
-    model = joblib.load('regression models/decision_tree_model.joblib')
-elif season == 'Naive Bayes':
-    model = joblib.load('regression models/naive_bayes_model.joblib')
-elif season == 'Random Forest':
-    model = joblib.load('regression models/random_forest_model.joblib')
+model_file_name = model_file_names[models.index(selected_model)]
+model = joblib.load(f'{prediction_type.lower()} models/{model_file_name}.joblib')
 
 # Number of rooms
 number_of_rooms = st.number_input("Number of Rooms", min_value=0, max_value=5)
@@ -47,7 +48,7 @@ region = st.selectbox("Select Region", ['region_Prishtine', 'region_other region
 # Select season
 season = st.selectbox("Select Season", ['seasons_Autumn', 'seasons_Spring', 'seasons_Summer', 'seasons_Winter'])
 
-# Make prediction when all necessary fields are filled
+# When predicting, handle differently based on the prediction type
 if st.button("Predict"):
     # Prepare the input data for prediction
     input_data = {
@@ -64,8 +65,21 @@ if st.button("Predict"):
     # Convert input data to a 2D array for prediction
     input_array = [list(input_data.values())]
 
+    prediction_ranges = {
+        '60-120': '60 to 120',
+        '120-180': '120 to 180',
+        '180-240': '180 to 240',
+        '240-300': '240 to 300',
+        '300-360': '300 to 360',
+        '360+': 'greater than 360'
+    }
+
     # Perform prediction using the loaded model
     prediction = model.predict(input_array)[0]
 
-    # Display the predicted price
-    st.write("Predicted Price: ", int(prediction), " euro")
+    # Check if the prediction type is classification or regression
+    if prediction_type == 'Classification':
+        # Use the predicted value to get the corresponding range
+        st.write("Predicted Price Range: ", prediction_ranges[prediction])
+    else:
+        st.write("Predicted Price: ", int(prediction), " euro")
