@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
@@ -24,90 +24,26 @@ df['price_group'] = pd.cut(df['price (euro)'], bins=bins, labels=labels, include
 X = df[['number of rooms','quadrat (m^2)','region_Prishtine','region_other region in kosove','seasons_Autumn','seasons_Spring','seasons_Summer','seasons_Winter']]
 y = df['price_group']  # Use price_group as target variable
 
-# Logistic Regression
-logistic_regression_model = LogisticRegression()
-logistic_regression_model.fit(X, y)
+# Splitting the data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4, random_state=42)
 
-# Save the trained logistic regression model to a file
-dump(logistic_regression_model, 'classification models/logistic_regression_model.joblib')
+# Models
+models = [LogisticRegression(), KNeighborsClassifier(), DecisionTreeClassifier(), GaussianNB(), RandomForestClassifier()]
+model_names = ["Logistic Regression", "KNN", "Decision Trees", "Naive Bayes", "Random Forest"]
+model_files = ['logistic_regression_model.joblib', 'knn_model.joblib', 'decision_tree_model.joblib', 'naive_bayes_model.joblib', 'random_forest_model.joblib']
 
-logistic_regression_predictions = logistic_regression_model.predict(X)
-logistic_regression_accuracy = accuracy_score(y, logistic_regression_predictions)
+for model, name, file in zip(models, model_names, model_files):
+    model.fit(X_train, y_train)
 
-print("Logistic Regression")
-print("Accuracy: ", logistic_regression_accuracy)
+    # Save the trained model to a file
+    dump(model, f'classification models/{file}')
 
-logistic_regression_scores = cross_val_score(logistic_regression_model, X, y, cv=5, scoring='accuracy')
-logistic_regression_avg_cross_val_score = np.mean(logistic_regression_scores)
-print("Cross validation score: ", logistic_regression_avg_cross_val_score)
+    predictions = model.predict(X_test)
+    accuracy = accuracy_score(y_test, predictions)
 
-# KNN
-knn_model = KNeighborsClassifier()
-knn_model.fit(X, y)
+    print("\n" + name)
+    print("Accuracy: ", accuracy)
 
-# Save the trained knn model to a file
-dump(knn_model, 'classification models/knn_model.joblib')
-
-knn_predictions = knn_model.predict(X)
-knn_accuracy = accuracy_score(y, knn_predictions)
-
-print("\nKNN")
-print("Accuracy: ", knn_accuracy)
-
-knn_scores = cross_val_score(knn_model, X, y, cv=5, scoring='accuracy')
-knn_avg_cross_val_score = np.mean(knn_scores)
-print("Cross validation score: ", knn_avg_cross_val_score)
-
-
-# Decision Tree
-decision_tree_model = DecisionTreeClassifier()
-decision_tree_model.fit(X, y)
-
-# Save the trained decision tree model to a file
-dump(decision_tree_model, 'classification models/decision_tree_model.joblib')
-
-decision_tree_predictions = decision_tree_model.predict(X)
-decision_tree_accuracy = accuracy_score(y, decision_tree_predictions)
-
-print("\nDecision Trees")
-print("Accuracy: ", decision_tree_accuracy)
-
-decision_tree_scores = cross_val_score(decision_tree_model, X, y, cv=5, scoring='accuracy')
-decision_tree_avg_cross_val_score = np.mean(decision_tree_scores)
-print("Cross validation score: ", decision_tree_avg_cross_val_score)
-
-
-# Naive Bayes
-naive_bayes_model = GaussianNB()
-naive_bayes_model.fit(X, y)
-
-# Save the trained naive bayes model to a file
-dump(naive_bayes_model, 'classification models/naive_bayes_model.joblib')
-
-naive_bayes_predictions = naive_bayes_model.predict(X)
-naive_bayes_accuracy = accuracy_score(y, naive_bayes_predictions)
-
-print("\nNaive Bayes")
-print("Accuracy: ", naive_bayes_accuracy)
-
-naive_bayes_scores = cross_val_score(naive_bayes_model, X, y, cv=5, scoring='accuracy')
-naive_bayes_avg_cross_val_score = np.mean(naive_bayes_scores)
-print("Cross validation score: ", naive_bayes_avg_cross_val_score)
-
-
-# Random Forest
-random_forest_model = RandomForestClassifier()
-random_forest_model.fit(X, y)
-
-# Save the trained random forest model to a file
-dump(random_forest_model, 'classification models/random_forest_model.joblib')
-
-random_forest_predictions = random_forest_model.predict(X)
-random_forest_accuracy = accuracy_score(y, random_forest_predictions)
-
-print("\nRandom Forest")
-print("Accuracy: ", random_forest_accuracy)
-
-random_forest_scores = cross_val_score(random_forest_model, X, y, cv=5, scoring='accuracy')
-random_forest_avg_cross_val_score = np.mean(random_forest_scores)
-print("Cross validation score: ", random_forest_avg_cross_val_score)
+    scores = cross_val_score(model, X, y, cv=5, scoring='accuracy')
+    avg_cross_val_score = np.mean(scores)
+    print("Cross validation score: ", avg_cross_val_score)

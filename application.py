@@ -43,10 +43,10 @@ max_m2 = room_to_m2_mapping[number_of_rooms]["max"]
 quadrat = st.number_input("Quadrat (m^2)", min_value=min_m2, max_value=max_m2)
 
 # Select region
-region = st.selectbox("Select Region", ['region_Prishtine', 'region_other region in Kosove'])
+region = st.selectbox("Select Region", ['Prishtine', 'Other'])
 
 # Select season
-season = st.selectbox("Select Season", ['seasons_Autumn', 'seasons_Spring', 'seasons_Summer', 'seasons_Winter'])
+season = st.selectbox("Select Season", ['Spring', 'Summer', 'Autumn', 'Winter'])
 
 # When predicting, handle differently based on the prediction type
 if st.button("Predict"):
@@ -54,12 +54,12 @@ if st.button("Predict"):
     input_data = {
         'number_of_rooms': number_of_rooms,
         'quadrat': quadrat,
-        'region_Prishtine': 1 if region == 'region_Prishtine' else 0,
-        'region_other region in Kosove': 1 if region == 'region_other region in Kosove' else 0,
-        'seasons_Autumn': 1 if season == 'seasons_Autumn' else 0,
-        'seasons_Spring': 1 if season == 'seasons_Spring' else 0,
-        'seasons_Summer': 1 if season == 'seasons_Summer' else 0,
-        'seasons_Winter': 1 if season == 'seasons_Winter' else 0
+        'region_Prishtine': 1 if region == 'Prishtine' else 0,
+        'region_other region in Kosove': 1 if region == 'Other' else 0,
+        'seasons_Autumn': 1 if season == 'Autumn' else 0,
+        'seasons_Spring': 1 if season == 'Spring' else 0,
+        'seasons_Summer': 1 if season == 'Summer' else 0,
+        'seasons_Winter': 1 if season == 'Winter' else 0
     }
 
     # Convert input data to a 2D array for prediction
